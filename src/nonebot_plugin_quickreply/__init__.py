@@ -5,7 +5,7 @@ from nonebot.adapters.onebot.v11 import (
     Bot,
     Message,
     MessageEvent,
-    MessageSegment,
+    MessageSegment, GroupMessageEvent,
 )
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.exception import FinishedException
@@ -44,7 +44,8 @@ plugin_config = get_plugin_config(Config)
 # --- 辅助函数：获取上下文ID ---
 def get_context_id(event: MessageEvent) -> str:
     """获取上下文ID，群聊为群号，私聊为 'private_' + 用户号"""
-    if event.message_type == "group" and event.group_id:
+    # 使用 isinstance 进行类型判断
+    if isinstance(event, GroupMessageEvent):
         return str(event.group_id)
     elif event.message_type == "private":
         return f"private_{event.user_id}"
