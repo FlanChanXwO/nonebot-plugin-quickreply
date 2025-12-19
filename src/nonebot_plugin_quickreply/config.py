@@ -1,14 +1,11 @@
-from nonebot import get_driver, get_plugin_config
 from pydantic import BaseModel
 
 
 class Config(BaseModel):
-    pass
-
-
-# 配置加载
-plugin_config: Config = get_plugin_config(Config)
-global_config = get_driver().config
-
-# 全局名称
-NICKNAME: str = next(iter(global_config.nickname), "")
+    """
+      快捷回复插件的配置类
+      """
+    # 每个用户可创建的总回复数上限，0表示无限制
+    quick_reply_max_per_user: int = 0
+    # 每个群聊/私聊上下文中的总回复数上限，0表示无限制
+    quick_reply_max_per_context: int = 0

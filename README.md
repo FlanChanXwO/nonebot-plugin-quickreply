@@ -2,7 +2,7 @@
     <a href="https://v2.nonebot.dev/store">
     <img src="https://raw.githubusercontent.com/fllesser/nonebot-plugin-template/refs/heads/resource/.docs/NoneBotPlugin.svg" width="310" alt="logo"></a>
 
-## ✨ nonebot-plugin-quickreply ✨
+## ✨ 快捷回复 ✨
 [![LICENSE](https://img.shields.io/github/license/FlanChanXwO/nonebot-plugin-quickreply.svg)](./LICENSE)
 [![pypi](https://img.shields.io/pypi/v/nonebot-plugin-quickreply.svg)](https://pypi.python.org/pypi/nonebot-plugin-quickreply)
 [![python](https://img.shields.io/badge/python-3.10|3.11|3.12|3.13-blue.svg)](https://www.python.org)
@@ -15,7 +15,7 @@
 
 ## 📖 介绍
 
-这里是插件的详细介绍部分
+一个功能强大的快捷回复插件，支持分群/私聊、配置化限制最大快捷回复数量。
 
 ## 💿 安装
 
@@ -42,31 +42,31 @@
 <summary>uv</summary>
 
     uv add nonebot-plugin-quickreply
-安装仓库 master 分支
+安装仓库 main 分支
 
-    uv add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@master
+    uv add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@main
 </details>
 
 <details>
 <summary>pdm</summary>
 
     pdm add nonebot-plugin-quickreply
-安装仓库 master 分支
+安装仓库 main 分支
 
-    pdm add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@master
+    pdm add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@main
 </details>
 <details>
 <summary>poetry</summary>
 
     poetry add nonebot-plugin-quickreply
-安装仓库 master 分支
+安装仓库 main 分支
 
-    poetry add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@master
+    poetry add git+https://github.com/FlanChanXwO/nonebot-plugin-quickreply@main
 </details>
 
 打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分追加写入
 
-    plugins = ["nonebot_plugin_quickreply"]
+    plugins = ["nonebot_plugin_quick_reply"]
 
 </details>
 
@@ -88,19 +88,36 @@
 
 ## ⚙️ 配置
 
-在 nonebot2 项目的`.env`文件中添加下表中的必填配置
+在 nonebot2 项目的`.env`或`.env.prod`文件中添加下表中的配置
 
-| 配置项  | 必填  | 默认值 |   说明   |
-| :-----: | :---: | :----: | :------: |
-| 配置项1 |  是   |   无   | 配置说明 |
-| 配置项2 |  否   |   无   | 配置说明 |
+| 配置项 | 必填 | 默认值 | 说明 |
+| :---: | :---: | :---: | :--- |
+| `quick_reply_max_per_user` | 否 | `0` | 每个用户可创建的总回复数上限，`0`表示无限制 |
+| `quick_reply_max_per_context` | 否 | `0` | 每个群聊/私聊上下文中的总回复数上限，`0`表示无限制 |
 
 ## 🎉 使用
 ### 指令表
-| 指令  | 权限  | 需要@ | 范围  |   说明   |
-| :---: | :---: | :---: | :---: | :------: |
-| 指令1 | 主人  |  否   | 私聊  | 指令说明 |
-| 指令2 | 群员  |  是   | 群聊  | 指令说明 |
+根据指令作用范围分为 **上下文相关** 和 **全局** 两类。
+
+#### 上下文相关指令 (仅在当前群聊/私聊生效)
+| 指令 | 权限 | 需要@ | 范围 | 说明 |
+| :---: | :---: | :---: | :---: | :--- |
+| `/设置回复 <关键词> <内容>` | 所有用户 | 否 | 群聊/私聊 | 添加或覆盖一条回复 |
+| `/删除回复 <关键词>` | 创建者 | 否 | 群聊/私聊 | 删除自己创建的回复 |
+| `/回复列表` | 所有用户 | 否 | 群聊/私聊 | 查看当前上下文的所有回复 |
+| `/管理删除 <关键词>` | 群管/超管 | 否 | 群聊 | 管理员强制删除回复 |
+
+#### 全局指令 (影响您所有的回复)
+| 指令 | 权限 | 需要@ | 范围 | 说明 |
+| :---: | :---: | :---: | :---: | :--- |
+| `/清空我的回复` | 所有用户 | 否 | 群聊/私聊 | 删除自己创建的所有回复 |
+| `/清空用户回复 <@用户或QQ>` | 超级用户 | 是 | 群聊/私聊 | 删除指定用户创建的所有回复 |
 
 ### 🎨 效果图
-如果有效果图的话
+![img.png](assets/img.png)（在这里可以放置插件的实际使用效果截图）
+![img_1.png](assets/img_1.png)
+![img_2.png](assets/img_2.png)
+![img_3.png](assets/img_3.png)
+![img_4.png](assets/img_4.png)
+![img_5.png](assets/img_5.png)
+![img_6.png](assets/img_6.png)
