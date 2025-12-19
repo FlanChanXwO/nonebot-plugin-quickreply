@@ -3,6 +3,15 @@ revision = 3
 requires-python = ">=3.10"
 
 [[package]]
+name = "aiosqlite"
+version = "0.22.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3a/0d/449c024bdabd0678ae07d804e60ed3b9786facd3add66f51eee67a0fccea/aiosqlite-0.22.0.tar.gz", hash = "sha256:7e9e52d72b319fcdeac727668975056c49720c995176dc57370935e5ba162bb9", size = 14707, upload-time = "2025-12-13T18:32:45.762Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/39/b2181148075272edfbbd6d87e6cd78cc71dca243446fa3b381fd4116950b/aiosqlite-0.22.0-py3-none-any.whl", hash = "sha256:96007fac2ce70eda3ca1bba7a3008c435258a592b8fbf2ee3eeaa36d33971a09", size = 17263, upload-time = "2025-12-13T18:32:44.619Z" },
+]
+
+[[package]]
 name = "alembic"
 version = "1.17.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1004,9 +1013,14 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/06/67/04baee1f96a158e1b4c9e40e666ab38891faa894c35c29008f75d246460e/nonebot_plugin_orm-0.8.2-py3-none-any.whl", hash = "sha256:be870742127714e7d54f1510f017027b82a5e0bf267e2cd239cac8fa471b1f5b", size = 31744, upload-time = "2025-07-12T17:13:44.522Z" },
 ]
 
+[package.optional-dependencies]
+default = [
+    { name = "sqlalchemy", extra = ["aiosqlite"] },
+]
+
 [[package]]
 name = "nonebot-plugin-quickreply"
-version = "0.1.5"
+version = "0.1.8"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
@@ -1014,7 +1028,7 @@ dependencies = [
     { name = "nonebot-plugin-alconna" },
     { name = "nonebot-plugin-apscheduler" },
     { name = "nonebot-plugin-localstore" },
-    { name = "nonebot-plugin-orm" },
+    { name = "nonebot-plugin-orm", extra = ["default"] },
     { name = "nonebot-plugin-uninfo" },
     { name = "nonebot2" },
 ]
@@ -1048,7 +1062,7 @@ requires-dist = [
     { name = "nonebot-plugin-alconna", specifier = ">=0.60.0,<1.0.0" },
     { name = "nonebot-plugin-apscheduler", specifier = ">=0.5.0,<1.0.0" },
     { name = "nonebot-plugin-localstore", specifier = ">=0.7.4,<1.0.0" },
-    { name = "nonebot-plugin-orm", specifier = ">=0.8.2" },
+    { name = "nonebot-plugin-orm", extras = ["default"], specifier = ">=0.8.2" },
     { name = "nonebot-plugin-uninfo", specifier = ">=0.10.0,<1.0.0" },
     { name = "nonebot2", specifier = ">=2.4.3" },
 ]
@@ -1738,6 +1752,13 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/42/39/f05f0ed54d451156bbed0e23eb0516bcad7cbb9f18b3bf219c786371b3f0/sqlalchemy-2.0.45-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:cd337d3526ec5298f67d6a30bbbe4ed7e5e68862f0bf6dd21d289f8d37b7d60b", size = 3522029, upload-time = "2025-12-09T22:13:32.09Z" },
     { url = "https://files.pythonhosted.org/packages/54/0f/d15398b98b65c2bce288d5ee3f7d0a81f77ab89d9456994d5c7cc8b2a9db/sqlalchemy-2.0.45-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:9a62b446b7d86a3909abbcd1cd3cc550a832f99c2bc37c5b22e1925438b9367b", size = 3475142, upload-time = "2025-12-09T22:13:33.739Z" },
     { url = "https://files.pythonhosted.org/packages/bf/e1/3ccb13c643399d22289c6a9786c1a91e3dcbb68bce4beb44926ac2c557bf/sqlalchemy-2.0.45-py3-none-any.whl", hash = "sha256:5225a288e4c8cc2308dbdd874edad6e7d0fd38eac1e9e5f23503425c8eee20d0", size = 1936672, upload-time = "2025-12-09T21:54:52.608Z" },
+]
+
+[package.optional-dependencies]
+aiosqlite = [
+    { name = "aiosqlite" },
+    { name = "greenlet" },
+    { name = "typing-extensions" },
 ]
 
 [[package]]

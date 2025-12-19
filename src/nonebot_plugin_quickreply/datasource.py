@@ -1,8 +1,13 @@
-from nonebot_plugin_orm import Model
-from sqlalchemy import String, func, select, delete, UniqueConstraint, CursorResult
-from sqlalchemy.ext.asyncio import AsyncSession
+from nonebot import require
+
+require("nonebot_plugin_orm")
+from collections.abc import Sequence
+
+from sqlalchemy import String, UniqueConstraint, func, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
-from typing import Sequence
+from nonebot_plugin_orm import Model
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class QuickReply(Model):
     __tablename__ = "quick_replies"
@@ -16,13 +21,19 @@ class QuickReply(Model):
     __table_args__ = (UniqueConstraint("key", "group_id", name="uq_key_group"),)
 
 
-async def get_reply(session: AsyncSession, key: str, group_id: str) -> QuickReply | None:
+async def get_reply(
+    session: AsyncSession, key: str, group_id: str
+) -> QuickReply | None:
     """根据关键词和上下文ID获取回复。"""
-    stmt = select(QuickReply).where(QuickReply.key == key, QuickReply.group_id == group_id)
+    stmt = select(QuickReply).where(
+        QuickReply.key == key, QuickReply.group_id == group_id
+    )
     return (await session.execute(stmt)).scalar_one_or_none()
 
 
-async def set_reply(session: AsyncSession, key: str, group_id: str, message_json: str, creator_id: str) -> bool:
+async def set_reply(
+    session: AsyncSession, key: str, group_id: str, message_json: str, creator_id: str
+) -> bool:
     """
     设置或更新一个快捷回复。
     如果回复是新创建的，返回 True；如果是更新的，返回 False。
@@ -36,10 +47,7 @@ async def set_reply(session: AsyncSession, key: str, group_id: str, message_json
     else:
         # 创建新回复
         new_reply = QuickReply(
-            key=key,
-            group_id=group_id,
-            message_json=message_json,
-            creator_id=creator_id
+            key=key, group_id=group_id, message_json=message_json, creator_id=creator_id
         )
         session.add(new_reply)
         return True
@@ -56,13 +64,21 @@ async def delete_reply(session: AsyncSession, key: str, group_id: str) -> bool:
     deleted_ids = result.scalars().all()
     return len(deleted_ids) > 0
 
-async def get_all_keywords_in_context(session: AsyncSession, group_id: str) -> list[str]:
+
+async def get_all_keywords_in_context(
+    session: AsyncSession, group_id: str
+) -> list[str]:
     """获取指定上下文中的所有关键词列表。"""
-    stmt = select(QuickReply.key).where(QuickReply.group_id == group_id).order_by(QuickReply.key)
+    stmt = (
+        select(QuickReply.key)
+        .where(QuickReply.group_id == group_id)
+        .order_by(QuickReply.key)
+    )
     return list((await session.execute(stmt)).scalars().all())
 
 
 # --- 管理和统计函数 ---
+
 
 async def delete_all_replies_by_user(session: AsyncSession, user_id: str) -> int:
     """
@@ -73,7 +89,7 @@ async def delete_all_replies_by_user(session: AsyncSession, user_id: str) -> int
     stmt = (
         delete(QuickReply)
         .where(QuickReply.creator_id == user_id)
-        .returning(QuickReply.id) # 关键改动：要求数据库返回被删除记录的 'id'
+        .returning(QuickReply.id)  # 关键改动：要求数据库返回被删除记录的 'id'
     )
     # 2. 执行语句并获取返回的主键列表
     deleted_ids: Sequence[int] = (await session.execute(stmt)).scalars().all()

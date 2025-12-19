@@ -1,6 +1,6 @@
 import json
 
-from nonebot import logger, on_command, on_message
+from nonebot import logger, require, on_command, on_message
 from nonebot.params import Depends, CommandArg
 from nonebot.plugin import PluginMetadata, get_plugin_config
 from nonebot.matcher import Matcher
@@ -15,9 +15,12 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
     GroupMessageEvent,
 )
+
+require("nonebot_plugin_orm")
+from nonebot_plugin_orm import get_session
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 
-from nonebot_plugin_quickreply.config import Config
+from .config import Config
 
 __plugin_meta__ = PluginMetadata(
     name="快捷回复",
@@ -40,13 +43,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 plugin_config = get_plugin_config(Config)
-
-
-async def get_db_session() -> AsyncSession:
-    """依赖注入函数，用于获取 orm 数据库 session"""
-    from nonebot_plugin_orm import get_session
-
-    return get_session()
 
 
 # --- 辅助函数：获取上下文ID ---
@@ -89,7 +85,7 @@ async def handle_set_reply(
     matcher: Matcher,
     event: MessageEvent,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -159,7 +155,7 @@ async def handle_del_reply(
     event: MessageEvent,
     matcher: Matcher,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -186,7 +182,7 @@ async def handle_admin_del_reply(
     event: MessageEvent,
     matcher: Matcher,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -206,7 +202,7 @@ async def handle_admin_del_reply(
 async def handle_list_replies(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -225,7 +221,7 @@ async def handle_list_replies(
 async def handle_get_reply(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -255,7 +251,7 @@ async def handle_get_reply(
 async def handle_clear_my_replies_confirm(
     event: MessageEvent,
     confirm: Message = Arg(),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
@@ -276,7 +272,7 @@ async def handle_clear_my_replies_confirm(
 async def handle_clear_user_replies(
     matcher: Matcher,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_session),
 ):
     from nonebot_plugin_quickreply import datasource
 
