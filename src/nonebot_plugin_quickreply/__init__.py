@@ -72,7 +72,7 @@ clear_my_replies = on_command(
 
 clear_user_replies = on_command(
     "清空用户回复",
-    aliases={"/clear_user_replies"},
+    aliases={"clear_user_replies"},
     permission=SUPERUSER,
     priority=5,
     block=True,

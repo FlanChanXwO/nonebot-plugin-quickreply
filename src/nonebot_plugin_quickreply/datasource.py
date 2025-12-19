@@ -10,14 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class QuickReply(Model):
-    __tablename__ = "quick_replies"
+    __tablename__ = "nonebot_plugin_quickreply"
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(String, index=True)
     group_id: Mapped[str] = mapped_column(String, index=True)  # 存储群号或 'private'
     message_json: Mapped[str] = mapped_column(String)
     creator_id: Mapped[str] = mapped_column(String)
-
-    # ↓↓↓ 创建联合唯一索引，确保一个群里一个key只有一个回复 ↓↓↓
     __table_args__ = (UniqueConstraint("key", "group_id", name="uq_key_group"),)
 
 
