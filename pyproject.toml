@@ -12,8 +12,9 @@ dependencies = [
     "nonebot-plugin-apscheduler>=0.5.0,<1.0.0", # 定时任务
     "nonebot-plugin-localstore>=0.7.4,<1.0.0", # 存储文件
     "nonebot-plugin-uninfo>=0.10.0,<1.0.0", # 多平台用户信息获取
-    "nonebot2>=2.4.3",
-     "nonebot-plugin-orm[default]>=0.8.2"
+    "nonebot2>=2.4.4",
+     "nonebot-plugin-orm[default]>=0.8.2",
+     "nonebot-plugin-orm>=0.8.2"
 ]
 
 [project.urls]
@@ -67,12 +68,17 @@ exclude_lines = [
 
 
 [tool.nonebot]
-plugins = ["nonebot_plugin_quickreply","nonebot_plugin_orm"]
 nonebot-plugin-orm = ["nonebot_plugin_orm"]
-adapters = [
-    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
-]
+plugin_dirs = []
+builtin_plugins = []
 
+[tool.nonebot.plugins]
+"@local" = ["nonebot_plugin_quickreply"]
+nonebot-plugin-orm = ["nonebot_plugin_orm"]
+
+[tool.nonebot.adapters]
+"@local" = []
+nonebot-adapter-onebot = [{name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11"}]
 [tool.poe.tasks]
 test = "pytest --cov=src --cov-report xml --junitxml=./junit.xml -n auto"
 bump = "bump-my-version bump"
