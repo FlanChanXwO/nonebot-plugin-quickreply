@@ -1,21 +1,22 @@
 import json
 
-from nonebot import on_command, on_message, logger
+from nonebot import logger, on_command, on_message
+from nonebot.params import Depends, CommandArg
+from nonebot.plugin import PluginMetadata, get_plugin_config
+from nonebot.matcher import Matcher
+from nonebot.exception import FinishedException
+from nonebot.permission import SUPERUSER
+from sqlalchemy.ext.asyncio import AsyncSession
+from nonebot.internal.params import Arg
 from nonebot.adapters.onebot.v11 import (
     Bot,
     Message,
     MessageEvent,
-    MessageSegment, GroupMessageEvent,
+    MessageSegment,
+    GroupMessageEvent,
 )
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
-from nonebot.exception import FinishedException
-from nonebot.internal.params import Arg
-from nonebot.matcher import Matcher
-from nonebot.params import CommandArg, Depends
-from nonebot.permission import SUPERUSER
-from nonebot.plugin import PluginMetadata, get_plugin_config
-from nonebot_plugin_uninfo import get_session
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from nonebot_plugin_quickreply.config import Config
 
 __plugin_meta__ = PluginMetadata(
@@ -41,6 +42,13 @@ __plugin_meta__ = PluginMetadata(
 plugin_config = get_plugin_config(Config)
 
 
+async def get_db_session() -> AsyncSession:
+    """依赖注入函数，用于获取 orm 数据库 session"""
+    from nonebot_plugin_orm import get_session
+
+    return get_session()
+
+
 # --- 辅助函数：获取上下文ID ---
 def get_context_id(event: MessageEvent) -> str:
     """获取上下文ID，群聊为群号，私聊为 'private_' + 用户号"""
@@ -63,10 +71,7 @@ admin_del_reply = on_command(
 )
 list_replies = on_command("回复列表", aliases={"listreply"}, priority=10, block=True)
 clear_my_replies = on_command(
-    "清空我的回复",
-    aliases={"清空我的快捷回复"},
-    priority=1,
-    block=True
+    "清空我的回复", aliases={"清空我的快捷回复"}, priority=1, block=True
 )
 
 clear_user_replies = on_command(
@@ -81,12 +86,13 @@ get_reply = on_message(priority=99, block=False)
 
 @set_reply.handle()
 async def handle_set_reply(
-        matcher: Matcher,
-        event: MessageEvent,
-        args: Message = CommandArg(),
-        session: AsyncSession = Depends(get_session),
+    matcher: Matcher,
+    event: MessageEvent,
+    args: Message = CommandArg(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     context_id = get_context_id(event)
     if context_id == "unknown":
         await matcher.finish("无法识别的会话上下文。")
@@ -109,7 +115,9 @@ async def handle_set_reply(
         value_parts = args_str.split(maxsplit=1)
 
         if len(value_parts) < 2:
-            await matcher.finish("参数不足！内容不能为空。\n用法: /设置回复 <关键词> <内容>")
+            await matcher.finish(
+                "参数不足！内容不能为空。\n用法: /设置回复 <关键词> <内容>"
+            )
 
         key = value_parts[0]
         value_str = value_parts[1]
@@ -139,19 +147,22 @@ async def handle_set_reply(
     )
     await session.commit()
 
-    reply_text = f"快捷回复 '{key}' 已设置成功。" if is_new else f"快捷回复 '{key}' 已更新。"
+    reply_text = (
+        f"快捷回复 '{key}' 已设置成功。" if is_new else f"快捷回复 '{key}' 已更新。"
+    )
     await matcher.finish(reply_text)
 
 
 @del_reply.handle()
 async def handle_del_reply(
-        bot: Bot,
-        event: MessageEvent,
-        matcher: Matcher,
-        args: Message = CommandArg(),
-        session: AsyncSession = Depends(get_session),
+    bot: Bot,
+    event: MessageEvent,
+    matcher: Matcher,
+    args: Message = CommandArg(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     context_id = get_context_id(event)
     key = args.extract_plain_text().strip()
     if not key:
@@ -172,12 +183,13 @@ async def handle_del_reply(
 
 @admin_del_reply.handle()
 async def handle_admin_del_reply(
-        event: MessageEvent,
-        matcher: Matcher,
-        args: Message = CommandArg(),
-        session: AsyncSession = Depends(get_session),
+    event: MessageEvent,
+    matcher: Matcher,
+    args: Message = CommandArg(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     context_id = get_context_id(event)
     key = args.extract_plain_text().strip()
     if not key:
@@ -192,27 +204,31 @@ async def handle_admin_del_reply(
 
 @list_replies.handle()
 async def handle_list_replies(
-        event: MessageEvent,
-        matcher: Matcher,
-        session: AsyncSession = Depends(get_session),
+    event: MessageEvent,
+    matcher: Matcher,
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     context_id = get_context_id(event)
     keywords = await datasource.get_all_keywords_in_context(session, context_id)
     if not keywords:
         await matcher.finish("本群(会话)尚未设置任何快捷回复。")
 
-    reply_text = "本群(会话)已设置的关键词列表：\n" + "\n".join(f"- {key}" for key in keywords)
+    reply_text = "本群(会话)已设置的关键词列表：\n" + "\n".join(
+        f"- {key}" for key in keywords
+    )
     await matcher.finish(reply_text)
 
 
 @get_reply.handle()
 async def handle_get_reply(
-        event: MessageEvent,
-        matcher: Matcher,
-        session: AsyncSession = Depends(get_session),
+    event: MessageEvent,
+    matcher: Matcher,
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     context_id = get_context_id(event)
     key = event.get_plaintext().strip()
     if not key or context_id == "unknown":
@@ -232,32 +248,38 @@ async def handle_get_reply(
             return
 
 
-@clear_my_replies.got("confirm",
-                      prompt="此操作将删除您在所有群聊/私聊中创建的全部快捷回复，且无法恢复！\n请输入“确认”以继续。")
+@clear_my_replies.got(
+    "confirm",
+    prompt="此操作将删除您在所有群聊/私聊中创建的全部快捷回复，且无法恢复！\n请输入“确认”以继续。",
+)
 async def handle_clear_my_replies_confirm(
-        event: MessageEvent,
-        confirm: Message = Arg(),
-        session: AsyncSession = Depends(get_session),
+    event: MessageEvent,
+    confirm: Message = Arg(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     if confirm.extract_plain_text() != "确认":
         await clear_my_replies.finish("操作已取消。")
     user_id = str(event.user_id)
     deleted_count = await datasource.delete_all_replies_by_user(session, user_id)
     await session.commit()
     if deleted_count > 0:
-        await clear_my_replies.finish(f"操作成功！已清空您创建的 {deleted_count} 条快捷回复。")
+        await clear_my_replies.finish(
+            f"操作成功！已清空您创建的 {deleted_count} 条快捷回复。"
+        )
     else:
         await clear_my_replies.finish("您之前没有创建过任何快捷回复。")
 
 
 @clear_user_replies.handle()
 async def handle_clear_user_replies(
-        matcher: Matcher,
-        args: Message = CommandArg(),
-        session: AsyncSession = Depends(get_session),
+    matcher: Matcher,
+    args: Message = CommandArg(),
+    session: AsyncSession = Depends(get_db_session),
 ):
     from nonebot_plugin_quickreply import datasource
+
     target_user_id = ""
     for seg in args:
         if seg.type == "at":
@@ -272,6 +294,8 @@ async def handle_clear_user_replies(
     deleted_count = await datasource.delete_all_replies_by_user(session, target_user_id)
     await session.commit()
     if deleted_count > 0:
-        await matcher.finish(f"操作成功！已清空用户 {target_user_id} 创建的 {deleted_count} 条快捷回复。")
+        await matcher.finish(
+            f"操作成功！已清空用户 {target_user_id} 创建的 {deleted_count} 条快捷回复。"
+        )
     else:
         await matcher.finish(f"用户 {target_user_id} 没有创建过任何快捷回复。")
