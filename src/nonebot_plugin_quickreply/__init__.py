@@ -20,6 +20,7 @@ require("nonebot_plugin_orm")
 from nonebot_plugin_orm import get_session
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 
+from . import datasource
 from .config import Config
 
 __plugin_meta__ = PluginMetadata(
@@ -87,8 +88,6 @@ async def handle_set_reply(
     args: Message = CommandArg(),
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     context_id = get_context_id(event)
     if context_id == "unknown":
         await matcher.finish("无法识别的会话上下文。")
@@ -157,8 +156,6 @@ async def handle_del_reply(
     args: Message = CommandArg(),
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     context_id = get_context_id(event)
     key = args.extract_plain_text().strip()
     if not key:
@@ -184,8 +181,6 @@ async def handle_admin_del_reply(
     args: Message = CommandArg(),
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     context_id = get_context_id(event)
     key = args.extract_plain_text().strip()
     if not key:
@@ -204,8 +199,6 @@ async def handle_list_replies(
     matcher: Matcher,
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     context_id = get_context_id(event)
     keywords = await datasource.get_all_keywords_in_context(session, context_id)
     if not keywords:
@@ -223,8 +216,6 @@ async def handle_get_reply(
     matcher: Matcher,
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     context_id = get_context_id(event)
     key = event.get_plaintext().strip()
     if not key or context_id == "unknown":
@@ -253,8 +244,6 @@ async def handle_clear_my_replies_confirm(
     confirm: Message = Arg(),
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     if confirm.extract_plain_text() != "确认":
         await clear_my_replies.finish("操作已取消。")
     user_id = str(event.user_id)
@@ -274,8 +263,6 @@ async def handle_clear_user_replies(
     args: Message = CommandArg(),
     session: AsyncSession = Depends(get_session),
 ):
-    from nonebot_plugin_quickreply import datasource
-
     target_user_id = ""
     for seg in args:
         if seg.type == "at":

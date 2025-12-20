@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-quickreply"
-version = "0.1.8"
+version = "0.1.9"
 description = "nonebot-plugin-quickreply"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -73,7 +73,6 @@ plugin_dirs = []
 builtin_plugins = []
 
 [tool.nonebot.plugins]
-"@local" = ["nonebot_plugin_quickreply"]
 nonebot-plugin-orm = ["nonebot_plugin_orm"]
 
 [tool.nonebot.adapters]
