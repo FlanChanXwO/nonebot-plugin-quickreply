@@ -43,7 +43,7 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/FlanChanXwO/nonebot-plugin-quickreply",
     config=Config,
     supported_adapters={"~onebot.v11"},
-    extra={"author": "FlanChanXwO", "version": "0.1.12"},
+    extra={"author": "FlanChanXwO", "version": "0.1.13"},
 )
 
 plugin_config = get_plugin_config(Config).quickreply

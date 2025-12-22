@@ -62,6 +62,7 @@ async def delete_reply(session: AsyncSession, key: str, group_id: str) -> bool:
         .returning(QuickReply.id)
     )
     result = await session.execute(stmt)
+    await session.commit()
     deleted_ids = result.scalars().all()
     return len(deleted_ids) > 0
 
