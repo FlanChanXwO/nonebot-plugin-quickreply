@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 revision: str = "d13b0bbb6546"
-down_revision: str | Sequence[str] | None = "e684ba43550d"
+down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
