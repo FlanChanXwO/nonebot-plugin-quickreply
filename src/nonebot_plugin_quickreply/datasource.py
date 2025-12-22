@@ -26,7 +26,8 @@ async def get_reply(
     stmt = select(QuickReply).where(
         QuickReply.key == key, QuickReply.group_id == group_id
     )
-    return (await session.execute(stmt)).scalar_one_or_none()
+    resp = await session.execute(stmt)
+    return resp.scalar_one_or_none()
 
 
 async def set_reply(
@@ -41,6 +42,7 @@ async def set_reply(
         # 更新现有回复
         existing_reply.message_json = message_json
         existing_reply.creator_id = creator_id  # 也可以更新创建者
+        await session.commit()
         return False
     else:
         # 创建新回复
@@ -48,6 +50,7 @@ async def set_reply(
             key=key, group_id=group_id, message_json=message_json, creator_id=creator_id
         )
         session.add(new_reply)
+        await session.commit()
         return True
 
 
@@ -78,22 +81,30 @@ async def get_all_keywords_in_context(
 # --- 管理和统计函数 ---
 
 
+async def delete_all_replies_in_context(session: AsyncSession, context_id: str) -> int:
+    """根据上下文ID删除其创建的所有快捷回复。"""
+    stmt = (
+        delete(QuickReply)
+        .where(QuickReply.group_id == context_id)
+        .returning(QuickReply.id)
+    )
+    deleted_ids: Sequence[int] = (await session.execute(stmt)).scalars().all()
+    await session.commit()
+    return len(deleted_ids)
+
+
 async def delete_all_replies_by_user(session: AsyncSession, user_id: str) -> int:
     """
     根据创建者ID删除其创建的所有快捷回复（全局）。
     返回删除的数量。
     """
-    # 1. 构建带有 returning() 的删除语句，让数据库返回被删除行的主键
     stmt = (
         delete(QuickReply)
         .where(QuickReply.creator_id == user_id)
-        .returning(QuickReply.id)  # 关键改动：要求数据库返回被删除记录的 'id'
+        .returning(QuickReply.id)
     )
-    # 2. 执行语句并获取返回的主键列表
     deleted_ids: Sequence[int] = (await session.execute(stmt)).scalars().all()
-    # 3. 提交事务，使删除生效
     await session.commit()
-    # 4. 返回列表中元素的数量，即为实际删除的行数
     return len(deleted_ids)
 
 
@@ -109,3 +120,37 @@ async def count_replies_by_context(session: AsyncSession, group_id: str) -> int:
     stmt = select(func.count(QuickReply.id)).where(QuickReply.group_id == group_id)
     result = await session.execute(stmt)
     return result.scalar_one()
+
+
+async def delete_replies_by_user_in_context(
+    session: AsyncSession, user_id: str, context_id: str
+) -> int:
+    """根据创建者ID和上下文ID删除其创建的所有快捷回复。"""
+    stmt = (
+        delete(QuickReply)
+        .where(QuickReply.creator_id == user_id, QuickReply.group_id == context_id)
+        .returning(QuickReply.id)
+    )
+    deleted_ids: Sequence[int] = (await session.execute(stmt)).scalars().all()
+    await session.commit()
+    return len(deleted_ids)
+
+
+async def get_all_keywords_by_user(session: AsyncSession, user_id: str) -> list[str]:
+    """获取指定用户创建的所有快捷回复关键词列表（全局）。"""
+    stmt = (
+        select(QuickReply.key)
+        .where(QuickReply.creator_id == user_id)
+        .order_by(QuickReply.key)
+    )
+    return list((await session.execute(stmt)).scalars().all())
+
+
+async def get_keywords_by_user_in_context(session, user_id, context_id) -> list[str]:
+    """获取指定用户在指定上下文中创建的所有快捷回复关键词列表。"""
+    stmt = (
+        select(QuickReply.key)
+        .where(QuickReply.creator_id == user_id, QuickReply.group_id == context_id)
+        .order_by(QuickReply.key)
+    )
+    return list((await session.execute(stmt)).scalars().all())
