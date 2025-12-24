@@ -8,6 +8,8 @@ class ScopedConfig(BaseModel):
     max_per_context: int = 0
     # 是否启用base64图片存储
     enable_base64: bool = True
+    # 是否启用权限检查
+    enable_permission_check: bool = True
 
 
 class Config(BaseModel):

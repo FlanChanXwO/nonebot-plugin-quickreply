@@ -8,7 +8,9 @@ from nonebot.exception import FinishedException
 from nonebot.permission import SUPERUSER
 from sqlalchemy.ext.asyncio import AsyncSession
 from nonebot.adapters.onebot.v11 import (
-    Bot,
+    Bot as OneV11Bot,
+)
+from nonebot.adapters.onebot.v11 import (
     Message,
     MessageEvent,
     MessageSegment,
@@ -43,7 +45,7 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/FlanChanXwO/nonebot-plugin-quickreply",
     config=Config,
     supported_adapters={"~onebot.v11"},
-    extra={"author": "FlanChanXwO", "version": "0.1.13"},
+    extra={"author": "FlanChanXwO", "version": "0.1.14"},
 )
 
 plugin_config = get_plugin_config(Config).quickreply
@@ -97,6 +99,7 @@ get_reply = on_message(priority=11, block=False)
 
 @set_reply.handle()
 async def handle_set_reply(
+    bot: OneV11Bot,
     matcher: Matcher,
     event: MessageEvent,
     args: Message = CommandArg(),
@@ -108,7 +111,6 @@ async def handle_set_reply(
 
     key_txt = ""
     value = Message()
-
     if event.reply:
         key_txt = args.extract_plain_text().strip()
         if not key_txt:
@@ -157,7 +159,21 @@ async def handle_set_reply(
     if error:
         await matcher.finish(error)
 
-    is_new = not bool(await datasource.get_reply(session, key_txt, context_id))
+    existing_reply = await datasource.get_reply(session, key_txt, context_id)
+
+    is_new = not bool(existing_reply)
+    # 如果要覆盖别人的回复，且原作者是群管理员/群主或超管，则禁止覆盖
+    has_permission = await check_permission_in_group(bot, event)
+    if not is_new and existing_reply.creator_id != str(event.user_id):
+        # 检查是否为超管
+        if not has_permission:
+            try:
+                await matcher.finish("您没有权限进行覆盖。")
+            except FinishedException:
+                raise
+            except Exception:
+                logger.exception("检查原作者群内身份失败")
+
     if is_new:
         if plugin_config.max_per_user > 0:
             count = await datasource.count_replies_by_user(session, str(event.user_id))
@@ -185,7 +201,7 @@ async def handle_set_reply(
 
 @del_reply.handle()
 async def handle_del_reply(
-    bot: Bot,
+    bot: OneV11Bot,
     event: MessageEvent,
     matcher: Matcher,
     args: Message = CommandArg(),
@@ -213,7 +229,7 @@ async def handle_del_reply(
 async def handle_clear_context_replies(
     event: MessageEvent,
     matcher: Matcher,
-    bot: Bot,
+    bot: OneV11Bot,
     session: AsyncSession = Depends(get_session),
 ):
     context_id, is_group = get_context_id(event)

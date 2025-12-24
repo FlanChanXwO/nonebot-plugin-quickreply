@@ -2,6 +2,7 @@ import re
 import base64
 
 import httpx
+from nonebot import get_plugin_config
 from nonebot.log import logger
 from nonebot.permission import SUPERUSER
 from nonebot.adapters.onebot.v11 import Bot as OneV11Bot
@@ -11,6 +12,10 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
     GroupMessageEvent,
 )
+
+from .config import Config
+
+plugin_config = get_plugin_config(Config).quickreply
 
 
 def is_only_contains_text(msg: Message | MessageSegment | str) -> bool:
@@ -26,6 +31,8 @@ def is_only_contains_text(msg: Message | MessageSegment | str) -> bool:
 
 async def check_permission_in_group(bot: OneV11Bot, event: MessageEvent) -> bool:
     """检查用户在群组中的权限，只有群主、管理员或超级用户才能通过检查。"""
+    if not plugin_config.enable_permission_check:
+        return True
     if isinstance(event, GroupMessageEvent):
         # 检查是否为超级用户
         if await SUPERUSER(bot, event):
