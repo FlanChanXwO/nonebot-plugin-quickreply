@@ -1,12 +1,11 @@
 import json
 
 from nonebot import logger, require, on_command, on_message
-from nonebot.params import Depends, CommandArg
+from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata, get_plugin_config
 from nonebot.matcher import Matcher
 from nonebot.exception import FinishedException
 from nonebot.permission import SUPERUSER
-from sqlalchemy.ext.asyncio import AsyncSession
 from nonebot.adapters.onebot.v11 import (
     Bot as OneV11Bot,
 )
@@ -17,7 +16,7 @@ from nonebot.adapters.onebot.v11 import (
 )
 
 require("nonebot_plugin_orm")
-from nonebot_plugin_orm import get_session
+from nonebot_plugin_orm import async_scoped_session
 
 from . import datasource
 from .utils import (
@@ -45,7 +44,7 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/FlanChanXwO/nonebot-plugin-quickreply",
     config=Config,
     supported_adapters={"~onebot.v11"},
-    extra={"author": "FlanChanXwO", "version": "0.1.14"},
+    extra={"author": "FlanChanXwO", "version": "0.1.15"},
 )
 
 plugin_config = get_plugin_config(Config).quickreply
@@ -102,8 +101,8 @@ async def handle_set_reply(
     bot: OneV11Bot,
     matcher: Matcher,
     event: MessageEvent,
+    session: async_scoped_session,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_session),
 ):
     context_id, _ = get_context_id(event)
     if context_id == "unknown":
@@ -204,8 +203,8 @@ async def handle_del_reply(
     bot: OneV11Bot,
     event: MessageEvent,
     matcher: Matcher,
+    session: async_scoped_session,
     args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_session),
 ):
     context_id, _ = get_context_id(event)
     key = args.extract_plain_text().strip()
@@ -230,7 +229,7 @@ async def handle_clear_context_replies(
     event: MessageEvent,
     matcher: Matcher,
     bot: OneV11Bot,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     context_id, is_group = get_context_id(event)
 
@@ -251,7 +250,7 @@ async def handle_clear_context_replies(
 async def handle_clear_my_replies_in_context(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     context_id, _ = get_context_id(event)
     user_id = str(event.user_id)
@@ -272,7 +271,7 @@ async def handle_clear_my_replies_in_context(
 async def handle_list_my_replies(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     user_id = str(event.user_id)
     keywords = await datasource.get_all_keywords_by_user(session, user_id)
@@ -287,7 +286,7 @@ async def handle_list_my_replies(
 async def handle_list_replies(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     context_id, _ = get_context_id(event)
     keywords = await datasource.get_all_keywords_in_context(session, context_id)
@@ -304,7 +303,7 @@ async def handle_list_replies(
 async def handle_list_my_replies_in_context(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     context_id, _ = get_context_id(event)
     user_id = str(event.user_id)
@@ -324,7 +323,7 @@ async def handle_list_my_replies_in_context(
 async def handle_get_reply(
     event: MessageEvent,
     matcher: Matcher,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     context_id, _ = get_context_id(event)
     key = event.get_plaintext().strip()
@@ -357,7 +356,7 @@ async def clear_my_replies_start(matcher: Matcher):
 @clear_my_replies.handle()
 async def handle_clear_my_replies_confirm(
     event: MessageEvent,
-    session: AsyncSession = Depends(get_session),
+    session: async_scoped_session,
 ):
     if event.get_plaintext() != "确认":
         await clear_my_replies.finish("操作已取消。")
@@ -375,9 +374,7 @@ async def handle_clear_my_replies_confirm(
 
 @clear_user_replies.handle()
 async def handle_clear_user_replies(
-    matcher: Matcher,
-    args: Message = CommandArg(),
-    session: AsyncSession = Depends(get_session),
+    matcher: Matcher, session: async_scoped_session, args: Message = CommandArg()
 ):
     target_user_id = ""
     for seg in args:

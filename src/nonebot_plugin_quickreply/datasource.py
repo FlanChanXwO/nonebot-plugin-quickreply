@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from sqlalchemy import String, UniqueConstraint, func, delete, select
 from sqlalchemy.orm import Mapped, mapped_column
 from nonebot_plugin_orm import Model
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_scoped_session
 
 
 class QuickReply(Model):
@@ -20,7 +20,7 @@ class QuickReply(Model):
 
 
 async def get_reply(
-    session: AsyncSession, key: str, group_id: str
+    session: async_scoped_session, key: str, group_id: str
 ) -> QuickReply | None:
     """根据关键词和上下文ID获取回复。"""
     stmt = select(QuickReply).where(
@@ -31,7 +31,11 @@ async def get_reply(
 
 
 async def set_reply(
-    session: AsyncSession, key: str, group_id: str, message_json: str, creator_id: str
+    session: async_scoped_session,
+    key: str,
+    group_id: str,
+    message_json: str,
+    creator_id: str,
 ) -> bool:
     """
     设置或更新一个快捷回复。
@@ -54,7 +58,7 @@ async def set_reply(
         return True
 
 
-async def delete_reply(session: AsyncSession, key: str, group_id: str) -> bool:
+async def delete_reply(session: async_scoped_session, key: str, group_id: str) -> bool:
     """根据关键词和上下文ID删除回复，成功返回 True。"""
     stmt = (
         delete(QuickReply)
@@ -68,7 +72,7 @@ async def delete_reply(session: AsyncSession, key: str, group_id: str) -> bool:
 
 
 async def get_all_keywords_in_context(
-    session: AsyncSession, group_id: str
+    session: async_scoped_session, group_id: str
 ) -> list[str]:
     """获取指定上下文中的所有关键词列表。"""
     stmt = (
@@ -82,7 +86,9 @@ async def get_all_keywords_in_context(
 # --- 管理和统计函数 ---
 
 
-async def delete_all_replies_in_context(session: AsyncSession, context_id: str) -> int:
+async def delete_all_replies_in_context(
+    session: async_scoped_session, context_id: str
+) -> int:
     """根据上下文ID删除其创建的所有快捷回复。"""
     stmt = (
         delete(QuickReply)
@@ -94,7 +100,9 @@ async def delete_all_replies_in_context(session: AsyncSession, context_id: str) 
     return len(deleted_ids)
 
 
-async def delete_all_replies_by_user(session: AsyncSession, user_id: str) -> int:
+async def delete_all_replies_by_user(
+    session: async_scoped_session, user_id: str
+) -> int:
     """
     根据创建者ID删除其创建的所有快捷回复（全局）。
     返回删除的数量。
@@ -109,14 +117,14 @@ async def delete_all_replies_by_user(session: AsyncSession, user_id: str) -> int
     return len(deleted_ids)
 
 
-async def count_replies_by_user(session: AsyncSession, user_id: str) -> int:
+async def count_replies_by_user(session: async_scoped_session, user_id: str) -> int:
     """计算指定用户创建的快捷回复总数（全局）。"""
     stmt = select(func.count(QuickReply.id)).where(QuickReply.creator_id == user_id)
     result = await session.execute(stmt)
     return result.scalar_one()
 
 
-async def count_replies_by_context(session: AsyncSession, group_id: str) -> int:
+async def count_replies_by_context(session: async_scoped_session, group_id: str) -> int:
     """计算指定上下文中的快捷回复总数。"""
     stmt = select(func.count(QuickReply.id)).where(QuickReply.group_id == group_id)
     result = await session.execute(stmt)
@@ -124,7 +132,7 @@ async def count_replies_by_context(session: AsyncSession, group_id: str) -> int:
 
 
 async def delete_replies_by_user_in_context(
-    session: AsyncSession, user_id: str, context_id: str
+    session: async_scoped_session, user_id: str, context_id: str
 ) -> int:
     """根据创建者ID和上下文ID删除其创建的所有快捷回复。"""
     stmt = (
@@ -137,7 +145,9 @@ async def delete_replies_by_user_in_context(
     return len(deleted_ids)
 
 
-async def get_all_keywords_by_user(session: AsyncSession, user_id: str) -> list[str]:
+async def get_all_keywords_by_user(
+    session: async_scoped_session, user_id: str
+) -> list[str]:
     """获取指定用户创建的所有快捷回复关键词列表（全局）。"""
     stmt = (
         select(QuickReply.key)
