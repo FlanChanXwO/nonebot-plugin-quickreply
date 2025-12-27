@@ -118,11 +118,11 @@
 | `/清空用户回复 <@用户或QQ>` | 超级用户 | 是 | 全局 | 删除指定用户创建的所有回复 (别名: `/清除用户回复`) |
 
 ### 🎨 效果图
-![img.png](assets/img.png)
-![img_1.png](assets/img_1.png)
-![img_2.png](assets/img_2.png)
-![img_3.png](assets/img_3.png)
-![img_4.png](assets/img_4.png)
-![img_5.png](assets/img_5.png)
-![img_6.png](assets/img_6.png)
-![img_7.png](assets/img_7.png)
+![img.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img.png)
+![img_1.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_1.png)
+![img_2.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_2.png)
+![img_3.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_3.png)
+![img_4.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_4.png)
+![img_5.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_5.png)
+![img_6.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_6.png)
+![img_7.png](https://github.com/FlanChanXwO/nonebot-plugin-quickreply/blob/master/assets/img_7.png)
