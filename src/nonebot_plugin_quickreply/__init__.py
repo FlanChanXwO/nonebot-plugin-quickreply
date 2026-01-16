@@ -93,7 +93,24 @@ clear_user_replies = on_command(
     priority=5,
     block=True,
 )
+
 get_reply = on_message(priority=11, block=False)
+
+
+async def extract_reply_message(bot: OneV11Bot, event: MessageEvent) -> Message | None:
+    if not event.reply:
+        return None
+
+    # 优先使用 event 中的缓存
+    if event.reply.message:
+        return event.reply.message
+
+    # 缓存失效，回退到 API 查询
+    try:
+        data = await bot.get_msg(message_id=event.reply.message_id)
+        return Message(data["message"])
+    except Exception:
+        return None
 
 
 @set_reply.handle()
@@ -114,9 +131,10 @@ async def handle_set_reply(
         key_txt = args.extract_plain_text().strip()
         if not key_txt:
             await matcher.finish("用法: 回复消息后输入 /设置回复 <关键词>")
-        if not event.reply.message:
-            await matcher.finish("回复的消息内容为空，无法设置。")
-        value = event.reply.message
+        target_message = await extract_reply_message(bot, event)
+        if not target_message:
+            await matcher.finish("无法获取被回复的消息内容（可能已过期或被撤回）。")
+        value = target_message
     else:
         # 处理 /设置回复 <key> <value> 的情况
         if not args:
